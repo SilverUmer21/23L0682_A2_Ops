@@ -1,0 +1,21 @@
+# Python / tooling
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.pytest_cache/
+.ruff_cache/
+
+# Secrets - never commit these (copy .env.example to .env and fill it in locally)
+.env
+.env.*
+!.env.example
+
+# Experiment tracking output (MLflow keeps runs on DagsHub)
+mlruns/
+mlartifacts/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
