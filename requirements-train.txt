@@ -1,0 +1,16 @@
+# Training / experimentation environment (WSL2 Debian, Python 3.13, GPU).
+# The web app has its own slim requirements file (CPU-only TensorFlow) - added in Task 4/6.
+tensorflow[and-cuda]==2.21.0
+keras==3.15.1
+keras-tuner==1.4.8
+mlflow==3.18.0
+dagshub==0.7.3
+dvc==3.67.1
+numpy==2.5.4
+pandas==3.1.1
+pillow==13.0.0
+matplotlib==3.11.2
+scikit-learn==1.9.1
+python-dotenv==1.2.4
+pytest==9.2.0
+ruff==0.17.4
