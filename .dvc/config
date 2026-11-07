@@ -1,0 +1,5 @@
+[core]
+    analytics = false
+    remote = origin
+['remote "origin"']
+    url = https://dagshub.com/SilverUmer21/23L0682_A2_Ops.dvc
