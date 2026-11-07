@@ -1,3 +1,0 @@
-class,images,median_megapixels,median_aspect_w_over_h,pct_landscape(>1.1),pct_square(0.9-1.1),pct_portrait(<0.9),pct_width_exactly_1024,pct_png,median_bytes_per_pixel,pct_under_256px_side
-ai_generated,539,0.886,1.5,67.347,24.304,8.349,9.833,20.408,0.234,2.783
-real,436,0.72,1.499,69.037,11.697,19.266,1.376,7.569,0.214,9.174

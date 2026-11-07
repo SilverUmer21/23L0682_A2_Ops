@@ -7,12 +7,14 @@ a Flask web app with a request-history database, Docker Compose, GitHub Actions 
 cloud-hosted model API.
 
 - Dataset: [AI Generated Images vs Real Images](https://www.kaggle.com/datasets/cashbowman/ai-generated-images-vs-real-images) (Kaggle)
-- Data and model versioning: DVC + DagsHub (project name `23L0682_A2_Ops`)
+- Data versioning: DVC with DagsHub storage (project name `23L0682_A2_Ops`)
 
-> Work in progress. Setup notes and run instructions will be added as each task is completed.
+> Work in progress. Run instructions will be added as each task is completed.
 
-## Local environment (WSL2 Debian, GPU)
+## Setup
 
 ```bash
-source scripts/gpu_env.sh   # activates .venv and exposes the pip-installed CUDA libraries to TensorFlow
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements-train.txt
+dvc pull            # downloads data/raw from DagsHub storage
 ```
