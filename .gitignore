@@ -19,3 +19,6 @@ mlartifacts/
 .DS_Store
 Thumbs.db
 *.log
+
+# Training outputs (checkpoints, curves, histories)
+runs/

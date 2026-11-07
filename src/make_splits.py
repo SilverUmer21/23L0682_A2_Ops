@@ -62,7 +62,7 @@ def main() -> None:
     for name, part in (("train", train), ("val", val), ("test", test)):
         part.to_csv(args.out / f"{name}.csv", index=False)
         counts = part["class"].value_counts()
-        summary[name] = {"images": int(len(part)), "ai_generated": int(counts.get("ai_generated", 0)),
+        summary[name] = {"images": len(part), "ai_generated": int(counts.get("ai_generated", 0)),
                          "real": int(counts.get("real", 0)),
                          "pct_ai_generated": round(100 * counts.get("ai_generated", 0) / len(part), 1)}
         print(f"{name:<5} {len(part):>4} images | ai_generated {summary[name]['ai_generated']:>3} "

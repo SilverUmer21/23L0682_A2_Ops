@@ -78,7 +78,7 @@ def summarise(df: pd.DataFrame) -> dict:
     for label, group in df.groupby("class"):
         good = group[group["readable"]]
         per_class[label] = {
-            "files": int(len(group)),
+            "files": len(group),
             "unreadable": int((~group["readable"]).sum()),
             **{f"{col}_{stat}": float(getattr(good[col], stat)())
                for col in ("width", "height", "size_bytes") for stat in ("min", "median", "max")},
@@ -86,7 +86,7 @@ def summarise(df: pd.DataFrame) -> dict:
     dup_groups = df[df["duplicate_group_size"] > 1].groupby("sha256")
     cross_class = [h for h, g in dup_groups if g["class"].nunique() > 1]
     return {
-        "total_files": int(len(df)),
+        "total_files": len(df),
         "per_class": per_class,
         "unreadable_files": df.loc[~df["readable"], ["path", "error"]].to_dict("records"),
         "duplicate_groups": int(dup_groups.ngroups),
