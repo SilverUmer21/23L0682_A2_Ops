@@ -36,7 +36,14 @@ def read_split(csv_path: str | Path, data_root: str | Path) -> tuple[list[str], 
 
 
 def decode_and_resize(path: tf.Tensor, img_size: int = IMG_SIZE, resize_mode: str = "stretch") -> tf.Tensor:
-    """File path -> uint8 tensor (img_size, img_size, 3).
+    """File path -> uint8 tensor (img_size, img_size, 3). Training reads files; the web app uses the bytes version."""
+    return decode_bytes_and_resize(tf.io.read_file(path), img_size, resize_mode)
+
+
+def decode_bytes_and_resize(raw: tf.Tensor, img_size: int = IMG_SIZE, resize_mode: str = "stretch") -> tf.Tensor:
+    """Encoded image bytes -> uint8 tensor (img_size, img_size, 3).
+
+    This single function is the preprocessing used in training AND in serving, so the two can never drift apart.
 
     decode_image(channels=3) turns grayscale, palette and RGBA files into plain RGB (alpha is dropped).
     It looks at the file CONTENT, not the extension, which matters because 20 files have the wrong extension.
@@ -48,7 +55,6 @@ def decode_and_resize(path: tf.Tensor, img_size: int = IMG_SIZE, resize_mode: st
                   among real images (19% vs 8%), so black bars could become a shortcut that reveals the class.
     antialias=True low-pass filters before shrinking, which avoids jagged aliasing for big photos (up to 8,495 px).
     """
-    raw = tf.io.read_file(path)
     image = tf.io.decode_image(raw, channels=3, expand_animations=False)
     image.set_shape([None, None, 3])
     if resize_mode == "pad":
