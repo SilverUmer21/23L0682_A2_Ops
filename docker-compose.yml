@@ -1,0 +1,44 @@
+# VisionGuard: web app + database.   Start everything with:   docker compose up -d --build
+# Passwords come from the untracked .env file (copy .env.example to .env and edit it).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-visionguard}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in the .env file}
+      POSTGRES_DB: ${POSTGRES_DB:-visionguard}
+    volumes:
+      - pgdata:/var/lib/postgresql/data      # named volume: the history survives container removal
+    healthcheck:                             # "healthy" only when Postgres really accepts connections
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+    # no "ports:" on purpose: the database is reachable only from other containers on Compose's internal network
+
+  web:
+    build:
+      context: .
+      target: web
+    depends_on:
+      db:
+        condition: service_healthy           # the web app starts only after the database reports healthy
+    environment:
+      MODEL_PATH: /models/champion.keras
+      THRESHOLD: ${THRESHOLD:-0.6362}
+      MODEL_NAME: ${MODEL_NAME:-23L0682_A2_Ops}
+      MODEL_VERSION: ${MODEL_VERSION:-2}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-5}
+      # the service name "db" is the host name on the internal network
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-visionguard}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-visionguard}
+      INFERENCE_URL: ${INFERENCE_URL:-}      # empty = use the local model; set = call the cloud model API
+      INFERENCE_API_KEY: ${INFERENCE_API_KEY:-}
+    volumes:
+      - ./models:/models:ro                  # the model file is MOUNTED (read-only), not built into the image
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Result{% endblock %}
+{% block content %}
+<h1>Result</h1>
+<div class="card result">
+  <img src="{{ preview }}" alt="Preview of {{ filename }}">
+  <div>
+    <p class="verdict {{ 'ai' if result.label == 'ai_generated' else 'real' }}">
+      {{ 'Likely AI-generated' if result.label == 'ai_generated' else 'Likely a real image' }}
+    </p>
+    <p class="big">Confidence: {{ "%.1f"|format(result.confidence * 100) }}%</p>
+    <table class="facts">
+      <tr><th>File</th><td>{{ filename }}</td></tr>
+      <tr><th>Probability AI-generated</th><td>{{ "%.3f"|format(result.prob_ai_generated) }}</td></tr>
+      <tr><th>Decision threshold</th><td>{{ "%.3f"|format(result.threshold) }}</td></tr>
+      <tr><th>Model</th><td>{{ result.model_name }} v{{ result.model_version }}</td></tr>
+    </table>
+  </div>
+</div>
+<p class="caveat"><strong>Please read:</strong> VisionGuard was trained on only 975 images and is wrong on roughly three
+images in ten. It struggles with paintings, illustrations, screenshots and edited photos. The confidence is the
+model's own score, not a guarantee. Do not use this verdict as proof that an image is fake or genuine.</p>
+<p><a class="button" href="{{ url_for('index') }}">Check another image</a>
+   <a class="button secondary" href="{{ url_for('history') }}">See history</a></p>
+{% endblock %}

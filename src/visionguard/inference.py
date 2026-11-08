@@ -1,4 +1,4 @@
-"""Inference helpers shared by the registry demo script (Task 3.6) and the Flask app (Task 4.1).
+"""Inference helpers shared by the registry demo script (Task 3.6), the Flask app and the model API (Task 4.1).
 
 The image is preprocessed with the SAME function as in training (decode_bytes_and_resize), and the verdict rule is
 the same one used when the threshold was chosen, so serving behaves exactly like evaluation.
@@ -8,7 +8,7 @@ from __future__ import annotations
 import numpy as np
 import tensorflow as tf
 
-from visionguard.data import decode_bytes_and_resize
+from visionguard.preprocess import decode_bytes_and_resize
 
 
 def verdict(prob_ai: float, threshold: float) -> tuple[str, float]:

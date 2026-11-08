@@ -6,8 +6,11 @@ Secrets are never written in code: the DagsHub login is read from environment va
 from __future__ import annotations
 
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
+import time
 from pathlib import Path
 
 import keras
@@ -83,6 +86,38 @@ def log_params_safely(mlflow_module, params: dict) -> None:
             mlflow_module.log_param(key, value)
         except MlflowException:
             mlflow_module.log_param(f"cfg_{key}", value)
+
+
+def fetch_champion(mlflow_module, model_name: str, alias: str, cache_dir: str | Path = "models", attempts: int = 3):
+    """Resolve a registry alias to a model version and keep ONE local .keras file for that version.
+
+    The file name contains the version number, so a new champion is downloaded again but an unchanged one is reused
+    from the local copy. A download goes to a temporary folder first, so a half-finished download is never mistaken
+    for a complete model. Returns (path to the .keras file, ModelVersion, where the file came from). The web app
+    uses the local file, so it never has to ask DagsHub while serving requests.
+    """
+    from mlflow.exceptions import MlflowException
+
+    version = mlflow_module.MlflowClient().get_model_version_by_alias(model_name, alias)
+    cached = Path(cache_dir) / f"{model_name}_v{version.version}.keras"
+    if cached.exists() and cached.stat().st_size > 0:
+        return cached, version, "local copy"
+    for attempt in range(1, attempts + 1):
+        scratch = tempfile.mkdtemp(prefix="champion_")
+        try:
+            folder = Path(mlflow_module.artifacts.download_artifacts(
+                artifact_uri=f"models:/{model_name}@{alias}", dst_path=scratch))
+            weights = folder / "data" / "model.keras"
+            if weights.exists() and weights.stat().st_size > 0:
+                cached.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(weights, cached)
+                return cached, version, "downloaded from the registry"
+        except (MlflowException, OSError) as exc:  # a dropped connection surfaces as one of these
+            print(f"download attempt {attempt}/{attempts} failed: {type(exc).__name__}", flush=True)
+        finally:
+            shutil.rmtree(scratch, ignore_errors=True)
+        time.sleep(2 * attempt)
+    raise SystemExit(f"could not download {model_name}@{alias} after {attempts} attempts")
 
 
 def write_frozen_requirements(path: Path) -> Path:

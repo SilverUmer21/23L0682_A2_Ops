@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}History{% endblock %}
+{% block content %}
+<h1>History</h1>
+<p class="lead">Every verdict is recorded: what was decided, when, by which model and how confidently.
+{{ count }} request{{ '' if count == 1 else 's' }} so far.</p>
+{% if rows %}
+<div class="table-wrap">
+<table class="history">
+  <thead><tr><th>#</th><th>When (UTC)</th><th>File</th><th>Decision</th><th>Confidence</th><th>P(AI)</th>
+  <th>Threshold</th><th>Model</th><th>Source</th></tr></thead>
+  <tbody>
+  {% for row in rows %}
+    <tr>
+      <td>{{ row.id }}</td>
+      <td>{{ row.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+      <td>{{ row.filename }}</td>
+      <td class="{{ 'ai' if row.label == 'ai_generated' else 'real' }}">{{ 'AI-generated' if row.label == 'ai_generated' else 'Real' }}</td>
+      <td>{{ "%.1f"|format(row.confidence * 100) }}%</td>
+      <td>{{ "%.3f"|format(row.prob_ai_generated) }}</td>
+      <td>{{ "%.3f"|format(row.threshold) }}</td>
+      <td>{{ row.model_name }} v{{ row.model_version }}</td>
+      <td>{{ row.source }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="pager">
+  {% if page > 1 %}<a href="{{ url_for('history', page=page - 1) }}">&larr; Newer</a>{% endif %}
+  Page {{ page }}
+  {% if has_next %}<a href="{{ url_for('history', page=page + 1) }}">Older &rarr;</a>{% endif %}
+</p>
+{% else %}
+<p class="card">No images have been checked yet. <a href="{{ url_for('index') }}">Check the first one.</a></p>
+{% endif %}
+{% endblock %}

@@ -12,6 +12,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+import keras
+
 from visionguard import tracking
 from visionguard.inference import classify
 
@@ -25,9 +27,11 @@ def main() -> None:
     args = parser.parse_args()
 
     mlflow = tracking.connect(None, "23L0682_A2_Ops")
-    version = mlflow.MlflowClient().get_model_version_by_alias(args.model_name, args.alias)
+    # resolve the alias to a version in the registry, then use that version's file (downloaded once into ./models)
+    model_file, version, origin = tracking.fetch_champion(mlflow, args.model_name, args.alias)
     print(f"registry: {args.model_name}@{args.alias} -> version {version.version} (from run {version.run_id[:8]})")
-    model = mlflow.keras.load_model(f"models:/{args.model_name}@{args.alias}")
+    print(f"model file: {model_file} ({origin})")
+    model = keras.models.load_model(model_file)
     threshold = args.threshold if args.threshold is not None else float(version.tags.get("selected_threshold", 0.5))
     resize_mode = version.tags.get("resize_mode", "stretch")
 

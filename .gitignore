@@ -22,3 +22,6 @@ Thumbs.db
 
 # Training outputs (checkpoints, curves, histories)
 runs/
+
+# Downloaded champion model (local cache)
+models/
