@@ -12,6 +12,7 @@ from webapp.validation import (
     InMemoryRequest,
     UploadError,
     check_upload,
+    reject_if_too_large,
     thumbnail_data_uri,
 )
 
@@ -29,6 +30,12 @@ def create_app(settings: Settings | None = None, backend=None) -> Flask:
 
     def error_page(status: int, title: str, message: str):
         return render_template("error.html", status=status, title=title, message=message), status
+
+    @app.before_request
+    def refuse_oversized_upload():
+        if request.method == "POST" and reject_if_too_large(app.config["MAX_CONTENT_LENGTH"]):
+            return error_page(413, "File too large", f"The image is larger than the {settings.max_upload_mb:g} MB limit.")
+        return None
 
     @app.get("/")
     def index():

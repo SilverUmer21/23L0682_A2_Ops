@@ -12,7 +12,7 @@ import base64
 import io
 from pathlib import Path
 
-from flask import Request
+from flask import Request, request
 from PIL import Image, UnidentifiedImageError
 from werkzeug.utils import secure_filename
 
@@ -35,6 +35,28 @@ class InMemoryRequest(Request):
 
     def _get_file_stream(self, total_content_length, content_type, filename=None, content_length=None):
         return io.BytesIO()
+
+
+def reject_if_too_large(max_bytes: int, drain_limit: int = 64 * 1024 * 1024) -> bool:
+    """True when the upload announced in Content-Length is bigger than max_bytes.
+
+    Before answering, the rest of the upload is read and thrown away (up to drain_limit). If the server answered
+    "413 too large" and closed the connection while the browser was still sending, the browser would report
+    ERR_CONNECTION_ABORTED and never show our error page. Reading the body first lets the browser finish sending
+    and then display the friendly page. Nothing is stored.
+    """
+    length = request.content_length
+    if length is None or length <= max_bytes:
+        return False
+    if length <= drain_limit:
+        stream = request.environ["wsgi.input"]
+        remaining = length
+        while remaining > 0:
+            chunk = stream.read(min(1024 * 1024, remaining))
+            if not chunk:
+                break
+            remaining -= len(chunk)
+    return True
 
 
 def check_upload(file_storage) -> tuple[bytes, str]:

@@ -13,7 +13,12 @@ from flask import Flask, jsonify, request
 
 from webapp.backends import InferenceError, LocalBackend
 from webapp.config import Settings
-from webapp.validation import InMemoryRequest, UploadError, check_upload
+from webapp.validation import (
+    InMemoryRequest,
+    UploadError,
+    check_upload,
+    reject_if_too_large,
+)
 
 
 def create_api_app(settings: Settings | None = None, backend=None) -> Flask:
@@ -24,6 +29,12 @@ def create_api_app(settings: Settings | None = None, backend=None) -> Flask:
     app.request_class = InMemoryRequest
     app.config["MAX_CONTENT_LENGTH"] = int(settings.max_upload_mb * 1024 * 1024)
     backend = backend or LocalBackend(settings)
+
+    @app.before_request
+    def refuse_oversized_upload():
+        if request.method == "POST" and reject_if_too_large(app.config["MAX_CONTENT_LENGTH"]):
+            return jsonify({"error": f"image larger than {settings.max_upload_mb:g} MB"}), 413
+        return None
 
     @app.get("/health")
     def health():
