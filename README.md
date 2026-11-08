@@ -36,3 +36,20 @@ publishes no port to the host. The model file is mounted into the container from
 pip install -r requirements-dev.txt
 ruff check src tests && pytest -q
 ```
+
+## Cloud deployment of the model API (Vercel)
+
+The live model API runs on Vercel as a serverless Flask function (`vercel_api/`). TensorFlow is too large for a
+serverless function, so the champion model is exported to TensorFlow Lite and served with the small `ai-edge-litert`
+runtime. On the 145 test images below 4.5 MB it gives the same accuracy as the Keras model (0.703 vs 0.697).
+
+```bash
+python src/export_tflite.py --model models/champion.keras --out vercel_api/model.tflite   # model.tflite is not committed
+cd vercel_api
+npx vercel link --yes
+npx vercel env add API_KEY production      # the secret key callers must send in the X-API-Key header
+npx vercel deploy --prod --yes
+```
+
+Endpoints: `GET /health` and `POST /predict` (form field `image`, header `X-API-Key`). Vercel rejects request bodies
+above 4.5 MB, so the web app is run with `MAX_UPLOAD_MB=4` and `INFERENCE_URL` set to the Vercel URL.

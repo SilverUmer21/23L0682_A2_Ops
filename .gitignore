@@ -25,3 +25,7 @@ runs/
 
 # Downloaded champion model (local cache)
 models/
+
+# Vercel deployment: the exported model and the CLI link folder stay local
+vercel_api/model.tflite
+vercel_api/.vercel/

@@ -24,3 +24,6 @@ tests
 # only the champion model may enter the build context (used by the 'api' stage)
 models/*
 !models/champion.keras
+
+# serverless variant is not part of the Docker images
+vercel_api
