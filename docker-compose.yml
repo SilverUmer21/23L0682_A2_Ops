@@ -37,7 +37,7 @@ services:
     volumes:
       - ./models:/models:ro                  # the model file is MOUNTED (read-only), not built into the image
     ports:
-      - "127.0.0.1:8000:8000"                # reachable from this PC only (not from the network); IPv4 loopback is reliable
+      - "8000:8000"
     restart: unless-stopped
 
 volumes:
