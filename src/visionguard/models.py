@@ -75,6 +75,17 @@ def unfreeze_last_block(backbone: keras.Model) -> None:
         layer.trainable = False
 
 
+def unfreeze_last_layers(backbone: keras.Model, n: int) -> None:
+    """Make the last `n` backbone layers trainable and keep everything before them frozen (n = 0 keeps all frozen).
+
+    Used by the Keras Tuner to search "how many layers to unfreeze". Compile the model again afterwards.
+    """
+    backbone.trainable = n > 0
+    if n > 0:
+        for layer in backbone.layers[:-n]:
+            layer.trainable = False
+
+
 def trainable_layers(model: keras.Model) -> list[str]:
     """Names of layers that currently have trainable weights (backbone layers are written 'backbone/layer')."""
     names: list[str] = []
