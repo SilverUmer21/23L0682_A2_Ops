@@ -20,7 +20,13 @@ WORKDIR /app
 # 1) Dependencies FIRST. Docker caches each instruction as a layer and re-runs an instruction only when its inputs
 #    changed. requirements-web.txt changes rarely, so this slow layer (TensorFlow) is reused on almost every build.
 COPY requirements-web.txt .
-RUN pip install -r requirements-web.txt
+# The two rm commands are the size optimisation (Task 6.4). They run in the SAME layer as pip install, because files
+# deleted in a later layer would still be stored in the earlier one. tensorflow/include (289 MB) holds C++ headers that
+# are only needed to compile custom TensorFlow operations, and clang (62 MB) is a tool binding TensorFlow lists as a
+# dependency but never imports when it serves a model. Neither is used at run time.
+RUN pip install -r requirements-web.txt \
+ && rm -rf /usr/local/lib/python3.13/site-packages/tensorflow/include \
+           /usr/local/lib/python3.13/site-packages/clang
 
 # 2) Our source code LAST. It changes all the time; because it comes after the dependency layer, editing code
 #    rebuilds only these cheap layers instead of reinstalling TensorFlow.
