@@ -7,6 +7,7 @@ from visionguard.models import (
     compile_model,
     trainable_layers,
     unfreeze_last_block,
+    unfreeze_last_layers,
 )
 
 
@@ -51,3 +52,12 @@ def test_transfer_model_predicts_one_probability_per_image():
     x = np.random.default_rng(1).uniform(0, 255, (2, 96, 96, 3)).astype("float32")
     p = model.predict(x, verbose=0)
     assert p.shape == (2, 1) and ((p >= 0) & (p <= 1)).all()
+
+
+def test_unfreeze_last_layers_opens_exactly_the_requested_tail():
+    _, backbone = build_transfer_model(img_size=96, weights=None)
+    unfreeze_last_layers(backbone, 0)
+    assert not any(layer.trainable for layer in backbone.layers)
+    unfreeze_last_layers(backbone, 10)
+    flags = [layer.trainable for layer in backbone.layers]
+    assert flags[-10:] == [True] * 10 and not any(flags[:-10])
